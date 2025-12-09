@@ -36,7 +36,16 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
   const [targetLanguage, setTargetLanguage] = useState(env.NEXT_PUBLIC_DEFAULT_TARGET_LANGUAGE);
   const [storyLength, setStoryLength] = useState(env.NEXT_PUBLIC_DEFAULT_STORY_LENGTH.toString());
   const [difficultyLevel, setDifficultyLevel] = useState(env.NEXT_PUBLIC_DEFAULT_DIFFICULTY_LEVEL);
-  const [topic, setTopic] = useState(env.NEXT_PUBLIC_DEFAULT_TOPIC || getRandomTopic());
+  const [topic, setTopic] = useState<string>(() => {
+    // Only initialize on client side to avoid hydration mismatch
+    if (typeof window === 'undefined') return '';
+
+    const defaultTopic = env.NEXT_PUBLIC_DEFAULT_TOPIC;
+
+    if (defaultTopic && defaultTopic.trim() && defaultTopic !== 'undefined') return defaultTopic;
+
+    return getRandomTopic();
+  });
   const vocabularyDisabled = env.NEXT_PUBLIC_DISABLE_VOCABULARY_CHECKBOX;
   const grammarDisabled = env.NEXT_PUBLIC_DISABLE_GRAMMAR_CHECKBOX;
 
@@ -53,9 +62,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
   };
 
   const handleStoryLengthBlur = () => {
-    if (storyLength === '') {
-      return;
-    }
+    if (storyLength === '') return;
 
     const numValue = parseInt(storyLength, 10);
 
@@ -158,7 +165,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
               variant='ghost'
               size='sm'
               className='h-6 w-6 p-0'
-              onClick={() => setTopic(getRandomTopic())}
+              onClick={() => setTopic((currentTopic) => getRandomTopic(currentTopic))}
               disabled={isLoading}
             >
               <RefreshCw className='h-3 w-3' />

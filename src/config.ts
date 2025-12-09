@@ -94,8 +94,14 @@ export const topicIdeas = [
   'Spirits exist and are just like us',
 ];
 
-export const getRandomTopic = () => {
-  return topicIdeas[Math.floor(Math.random() * topicIdeas.length)];
+export const getRandomTopic = (oldTopic?: string) => {
+  let newTopic: string;
+
+  do {
+    newTopic = topicIdeas[Math.floor(Math.random() * topicIdeas.length)];
+  } while (oldTopic && newTopic === oldTopic);
+
+  return newTopic;
 };
 
 export const storyRequirements = {

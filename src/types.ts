@@ -6,7 +6,9 @@ export type StoryRequirementOptions = {
   template: string;
   label?: string;
 };
-export type StoryRequirements = Record<string, StoryRequirement>;
+
+export type StoryRequirementType = keyof typeof storyRequirements;
+export type StoryRequirements = Record<StoryRequirementType, StoryRequirementOptions>;
 
 // Usage tracking types
 export type StoryUsage = {
