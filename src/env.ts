@@ -17,6 +17,9 @@ export const env = createEnv({
     ANTHROPIC_API_KEY: z.string().min(1),
     ANTHROPIC_MODEL: z.string().min(4).default(defaultAnthropicModel),
     SITE_HOSTNAME: z.string().optional(),
+    DATABASE_URL: z.string().min(1).default('file:./db/local.db'),
+    DATABASE_AUTH_TOKEN: z.string().optional(),
+    GOOGLE_CLOUD_PROJECT_ID: z.string().optional(),
     DEBUG: z
       .string()
       .transform((val) => boolean(val))

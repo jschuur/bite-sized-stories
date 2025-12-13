@@ -104,7 +104,7 @@ export const getRandomTopic = (oldTopic?: string) => {
   return newTopic;
 };
 
-export const storyRequirements = {
+export const storyRequirementsConfig = {
   tones: {
     count: 3,
     options: [

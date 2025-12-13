@@ -13,6 +13,12 @@ export default $config({
   async run() {
     const { env } = await import('./src/env');
 
+    new sst.x.DevCommand('Turso', {
+      dev: {
+        command: 'pnpm run dev:db',
+      },
+    });
+
     const environment = Object.fromEntries(
       Object.entries(env).map(([key, value]) => [key, String(value)])
     );
@@ -22,8 +28,14 @@ export default $config({
     new sst.aws.Nextjs('Site', {
       domain: env.SITE_HOSTNAME,
       environment,
+      dev: {
+        command: 'pnpm run dev-cmd',
+      },
       server: {
         timeout: '60 seconds',
+        // TODO: Make this work with just @libsql/client/web again and without installing @libsql/linux-x64-gnu
+        // Currently requires to resolve `Cannot find module '@libsql/linux-x64-gnu'` error: https://github.com/tursodatabase/libsql-client-ts/issues/112
+        install: ['libsql/linux-x64-gnu'],
       },
     });
   },

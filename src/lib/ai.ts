@@ -1,37 +1,53 @@
-import { storyRequirements } from '@/config';
-import { debug } from '@/lib/utils';
+import { anthropic } from '@ai-sdk/anthropic';
+import { streamText } from 'ai';
 
-import { StoryRequirementOptions } from '@/types';
+import { createStory, updateStory } from '@/db/queries';
+import { debug, extractStoryContent } from '@/lib/utils';
 
-function buildStoryRequirements(config: StoryRequirementOptions): (string | number)[] {
-  if (config.options.length === 0) {
-    throw new Error('No options available in configuration');
-  }
+import { storyRequirementsConfig } from '@/config';
+import { env } from '@/env';
+
+import type {
+  Story,
+  StoryRequest,
+  StoryRequirementOptions,
+  StoryRequirements,
+  StoryRequirementType,
+  StoryRequirementValue,
+} from '@/types';
+
+type BuildStoryRequirementResponse = {
+  requirement: StoryRequirementValue;
+  formattedRequirement: string;
+};
+function buildStoryRequirement(config: StoryRequirementOptions): BuildStoryRequirementResponse {
+  let requirement: StoryRequirementValue;
+
+  if (config.options.length === 0) throw new Error('No options available in configuration');
 
   if (config.count === 1) {
     const randomIndex = Math.floor(Math.random() * config.options.length);
-    return [config.options[randomIndex]];
+
+    requirement = [config.options[randomIndex]];
+  } else {
+    const shuffled = [...config.options].sort(() => Math.random() - 0.5);
+
+    requirement = shuffled.slice(0, Math.min(config.count, config.options.length));
   }
 
-  const shuffled = [...config.options].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, Math.min(config.count, config.options.length));
+  const formattedRequirement = renderTemplate(config.template, requirement);
+
+  return { requirement, formattedRequirement };
 }
 
-function formatTemplate(
-  template: string,
-  value: string | number,
-  values?: (string | number)[]
-): string {
-  const displayValue = values && values.length > 1 ? values.join(', ') : String(value);
-  let formatted = template.replace('{value}', displayValue);
+function renderTemplate(template: string, requirement: StoryRequirementValue): string {
+  const displayValue =
+    requirement && requirement.length > 1 ? requirement.join(', ') : String(requirement[0]);
+  const formatted = template.replace('{value}', displayValue);
 
-  if (typeof value === 'number' && value > 1) {
-    formatted = formatted.replace('{plural}', 's');
-  } else {
-    formatted = formatted.replace('{plural}', '');
-  }
+  const count = typeof requirement[0] === 'number' ? requirement[0] : requirement.length;
 
-  return formatted;
+  return count > 1 ? formatted.replace('{plural}', 's') : formatted.replace('{plural}', '');
 }
 
 export type BuiltPromptParams = {
@@ -51,20 +67,14 @@ export function buildPrompt({
   includeVocabulary,
   includeGrammarTips,
 }: BuiltPromptParams) {
-  const randomValues: Record<string, (string | number)[]> = {};
+  const storyRequirements: StoryRequirements = {} as StoryRequirements;
   const storyRequirementsList: string[] = [];
 
-  for (const [key, config] of Object.entries(storyRequirements)) {
-    const values = buildStoryRequirements(config);
-    randomValues[key] = values;
+  for (const [key, config] of Object.entries(storyRequirementsConfig)) {
+    const { requirement, formattedRequirement } = buildStoryRequirement(config);
 
-    const value = values[0];
-    const formattedTemplate = formatTemplate(
-      config.template,
-      value,
-      values.length > 1 ? values : undefined
-    );
-    storyRequirementsList.push(formattedTemplate);
+    storyRequirements[key as StoryRequirementType] = requirement;
+    storyRequirementsList.push(formattedRequirement);
   }
 
   const prompt = `Generate a short story in ${targetLanguage} for language learners.
@@ -93,5 +103,49 @@ ${
 
   debug(prompt);
 
-  return { prompt, storyRequirements: randomValues };
+  return { prompt, storyRequirements };
+}
+
+export async function generateStoryStreaming(storyRequest: StoryRequest) {
+  let story: Story | null = null;
+  let storyId: string | null = null;
+
+  const { prompt, storyRequirements } = buildPrompt(storyRequest);
+
+  try {
+    // Create story entry with status 'pending'
+    story = await createStory({
+      language: storyRequest.targetLanguage,
+      topic: storyRequest.topic,
+      difficultyLevel: storyRequest.difficultyLevel,
+      storyRequirements,
+      prompt,
+    });
+
+    storyId = story.id;
+  } catch (error) {
+    console.warn('Error creating story:', error);
+  }
+
+  const result = streamText({
+    model: anthropic(env.ANTHROPIC_MODEL),
+    prompt,
+    onFinish: async ({ text }) => {
+      try {
+        if (storyId) {
+          const { title, story } = extractStoryContent(text);
+          await updateStory({
+            id: storyId,
+            title,
+            story,
+            status: 'completed',
+          });
+        }
+      } catch (error) {
+        console.warn('Error updating story:', error);
+      }
+    },
+  });
+
+  return result;
 }

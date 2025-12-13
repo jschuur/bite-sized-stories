@@ -1,67 +1,37 @@
-import { anthropic } from '@ai-sdk/anthropic';
-import { streamText } from 'ai';
-import { z } from 'zod';
+import { updateStory } from '@/db/queries';
+import { generateStoryStreaming } from '@/lib/ai';
 
-import { buildPrompt } from '@/lib/ai';
-
-import { difficultyLevels, getRandomTopic, languages } from '@/config';
-import { env } from '@/env';
-
-const requestSchema = z.object({
-  targetLanguage: z.enum(languages as [string, ...string[]], {
-    message: 'Invalid target language',
-  }),
-  storyLength: z.coerce
-    .number()
-    .int()
-    .min(env.NEXT_PUBLIC_DEFAULT_STORY_LENGTH_MIN)
-    .max(env.NEXT_PUBLIC_DEFAULT_STORY_LENGTH_MAX)
-    .transform((val) =>
-      Math.max(
-        env.NEXT_PUBLIC_DEFAULT_STORY_LENGTH_MIN,
-        Math.min(env.NEXT_PUBLIC_DEFAULT_STORY_LENGTH_MAX, val)
-      )
-    ),
-  difficultyLevel: z.enum(Object.keys(difficultyLevels) as [string, ...string[]], {
-    message: 'Invalid difficulty level',
-  }),
-  topic: z.string().default(getRandomTopic()),
-  includeVocabulary: z.coerce
-    .boolean()
-    .optional()
-    .default(false)
-    .transform((val) => (env.NEXT_PUBLIC_DISABLE_VOCABULARY_CHECKBOX ? false : val)),
-  includeGrammarTips: z.coerce
-    .boolean()
-    .optional()
-    .default(false)
-    .transform((val) => (env.NEXT_PUBLIC_DISABLE_GRAMMAR_CHECKBOX ? false : val)),
-});
+import { storyRequestSchema } from '@/types';
 
 export async function POST(req: Request) {
+  const storyId: string | null = null;
+
   try {
     const body = await req.json();
-    const parseResult = requestSchema.safeParse(body);
+    const storyRequest = storyRequestSchema.safeParse(body);
 
-    if (!parseResult.success)
+    if (!storyRequest.success)
       return new Response(
         JSON.stringify({
           error: 'Invalid request parameters',
-          details: parseResult.error.issues,
+          details: storyRequest.error.issues,
         }),
         { status: 400 }
       );
 
-    const prompt = buildPrompt(parseResult.data);
-
-    const result = streamText({
-      model: anthropic(env.ANTHROPIC_MODEL),
-      prompt,
-    });
+    const result = await generateStoryStreaming(storyRequest.data);
 
     return result.toUIMessageStreamResponse();
   } catch (error) {
     console.error('Error generating story:', error);
+
+    // Update story status to 'error' if we have a storyId
+    if (storyId)
+      await updateStory({
+        id: storyId,
+        errorMessage: error instanceof Error ? error.message : 'Failed to generate story',
+        status: 'error',
+      });
 
     return new Response(JSON.stringify({ error: 'Failed to generate story' }), { status: 500 });
   }
