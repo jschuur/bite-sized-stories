@@ -24,11 +24,12 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "sst.config.ts",
+    "scripts/**/*.ts"
   ],
-  "exclude": ["node_modules", "sst.config.ts", ".sst", ".open-next", ".next"]
+  "exclude": ["node_modules", ".sst", ".open-next", ".next"]
 }

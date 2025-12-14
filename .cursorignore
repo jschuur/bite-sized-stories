@@ -1,0 +1,9 @@
+node_modules/
+.next/
+.open-next/
+.sst/
+db/local.*
+google-credentials.json
+.env
+.env.*
+!.env.example
