@@ -1,4 +1,6 @@
-import { BarChart3, Menu, User } from 'lucide-react';
+import { BarChart3, LogIn, LogOut, Menu, Settings, ShieldUser, User } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
@@ -13,9 +15,25 @@ import {
 
 import { UsageStats } from '@/components/UsageStats';
 
+import { authClient } from '@/lib/authClient';
+
 export default function UserMenu() {
   const [usageOpen, setUsageOpen] = useState(false);
+  const { data: session, isPending } = authClient.useSession();
+  const router = useRouter();
+  const pathname = usePathname();
+
   useHotkeys('ctrl+d', () => setUsageOpen(true));
+
+  const handleSignIn = () => {
+    authClient.signIn.social({ provider: 'google', callbackURL: pathname });
+  };
+
+  const handleSignOut = async () => {
+    await authClient.signOut();
+    router.push('/');
+    router.refresh();
+  };
 
   return (
     <>
@@ -29,15 +47,55 @@ export default function UserMenu() {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='w-48'>
-          <DropdownMenuItem disabled className='gap-2 opacity-70'>
-            <User className='h-4 w-4' />
-            Guest
-          </DropdownMenuItem>
+          {isPending ? (
+            <DropdownMenuItem disabled className='gap-2 opacity-70'>
+              <User className='h-4 w-4' />
+              Loading...
+            </DropdownMenuItem>
+          ) : session?.user ? (
+            <>
+              <DropdownMenuItem disabled className='gap-2 opacity-70'>
+                {session.user.isAdmin ? (
+                  <ShieldUser className='h-4 w-4' />
+                ) : (
+                  <User className='h-4 w-4' />
+                )}
+                {session.user.name}
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <>
+              <DropdownMenuItem className='gap-2' onSelect={handleSignIn}>
+                <LogIn className='h-4 w-4' />
+                Sign in with Google
+              </DropdownMenuItem>
+            </>
+          )}
+
           <DropdownMenuSeparator />
           <DropdownMenuItem className='gap-2' onSelect={() => setUsageOpen(true)}>
             <BarChart3 className='h-4 w-4' />
             LLM Usage
           </DropdownMenuItem>
+
+          {session?.user?.isAdmin && (
+            <DropdownMenuItem className='gap-2' asChild>
+              <Link href='/admin'>
+                <Settings className='h-4 w-4' />
+                Admin
+              </Link>
+            </DropdownMenuItem>
+          )}
+
+          {session?.user && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className='gap-2' onSelect={handleSignOut}>
+                <LogOut className='h-4 w-4' />
+                Sign Out
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
