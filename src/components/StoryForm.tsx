@@ -1,7 +1,7 @@
 'use client';
 
 import { RefreshCw } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -35,27 +35,22 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
   const [targetLanguage, setTargetLanguage] = useState(env.NEXT_PUBLIC_DEFAULT_TARGET_LANGUAGE);
   const [storyLength, setStoryLength] = useState(env.NEXT_PUBLIC_DEFAULT_STORY_LENGTH.toString());
   const [difficultyLevel, setDifficultyLevel] = useState(env.NEXT_PUBLIC_DEFAULT_DIFFICULTY_LEVEL);
-  const [topic, setTopic] = useState<string>('');
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
+  const [topic, setTopic] = useState<string>(() => {
     const defaultTopic = env.NEXT_PUBLIC_DEFAULT_TOPIC;
 
-    if (defaultTopic && defaultTopic.trim() && defaultTopic !== 'undefined') {
-      setTopic(defaultTopic);
-    } else {
-      setTopic(getRandomTopic());
-    }
-  }, []);
+    if (defaultTopic && defaultTopic.trim() && defaultTopic !== 'undefined')
+      return defaultTopic;
+
+    return getRandomTopic();
+  });
   const vocabularyDisabled = env.NEXT_PUBLIC_DISABLE_VOCABULARY_CHECKBOX;
   const grammarDisabled = env.NEXT_PUBLIC_DISABLE_GRAMMAR_CHECKBOX;
 
   const [includeVocabulary, setIncludeVocabulary] = useState(
-    vocabularyDisabled ? false : env.NEXT_PUBLIC_DEFAULT_INCLUDE_VOCABULARY
+    vocabularyDisabled ? false : env.NEXT_PUBLIC_DEFAULT_INCLUDE_VOCABULARY,
   );
   const [includeGrammarTips, setIncludeGrammarTips] = useState(
-    grammarDisabled ? false : env.NEXT_PUBLIC_DEFAULT_INCLUDE_GRAMMAR
+    grammarDisabled ? false : env.NEXT_PUBLIC_DEFAULT_INCLUDE_GRAMMAR,
   );
   const [error, setError] = useState('');
 
@@ -71,7 +66,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     if (!isNaN(numValue)) {
       const clamped = Math.max(
         env.NEXT_PUBLIC_DEFAULT_STORY_LENGTH_MIN,
-        Math.min(env.NEXT_PUBLIC_DEFAULT_STORY_LENGTH_MAX, numValue)
+        Math.min(env.NEXT_PUBLIC_DEFAULT_STORY_LENGTH_MAX, numValue),
       );
 
       setStoryLength(clamped.toString());
@@ -105,7 +100,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
   return (
     <div className='space-y-6'>
       <div className='space-y-2'>
-        <h3 className='text-lg font-semibold'>Story Settings</h3>
+        <h3 className='text-lg font-semibold'>Create a Story</h3>
         <p className='text-sm text-muted-foreground'>What kind of story do you want to generate?</p>
       </div>
 

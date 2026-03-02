@@ -3,7 +3,6 @@
 import { useAtomValue } from 'jotai';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
 
 import { env } from '@/env';
 import { todayUsageAtom, usageStatsAtom } from '@/store/usage';
@@ -36,27 +35,11 @@ function UsageRow({
 export function UsageStats() {
   const usageStats = useAtomValue(usageStatsAtom);
   const todayUsage = useAtomValue(todayUsageAtom);
-  const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
 
-  // Toggle the entire card with Ctrl-D
-  useHotkeys('ctrl+d', (e) => {
-    e.preventDefault();
-    setIsOpen((prev) => !prev);
-  });
-
-  // Toggle the details with Ctrl-Down
-  useHotkeys('ctrl+down', (e) => {
-    e.preventDefault();
-    setIsExpanded((prev) => !prev);
-  });
-
-  if (!isOpen) return null;
-
   return (
-    <div className='mb-6 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900'>
+    <div>
       <div className='mb-3 flex items-center justify-between'>
-        <h3 className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>LLM Usage</h3>
         {(todayUsage.requests > 0 || usageStats.totalAllTime.requests > 0) && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -103,7 +86,6 @@ export function UsageStats() {
             </tr>
           </thead>
           <tbody className='text-zinc-700 dark:text-zinc-300'>
-            {/* Session row - always visible */}
             <UsageRow
               period='Session'
               characters={usageStats.session.characters}
@@ -111,7 +93,6 @@ export function UsageStats() {
               requests={usageStats.session.requests}
             />
 
-            {/* Expandable rows */}
             {isExpanded && (
               <>
                 {todayUsage.requests > 0 && (

@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 
 import {
   Table,
@@ -30,11 +31,7 @@ function getLanguageName(languageCode: string): string {
   return language?.name || languageCode;
 }
 
-interface StoryListProps {
-  onStorySelect: (story: Story) => void;
-}
-
-export function StoryList({ onStorySelect }: StoryListProps) {
+export function StoryList() {
   const {
     data: storiesData,
     isLoading,
@@ -98,10 +95,16 @@ export function StoryList({ onStorySelect }: StoryListProps) {
           {stories.map((story: Story) => (
             <TableRow
               key={story.id}
-              className='cursor-pointer hover:bg-muted/50 transition-colors border-none'
-              onClick={() => onStorySelect(story)}
+              className='hover:bg-muted/50 transition-colors border-none'
             >
-              <TableCell className='font-medium border-none'>{story.title || 'Untitled'}</TableCell>
+              <TableCell className='font-medium border-none p-0'>
+                <Link
+                  href={`/story/${story.id}`}
+                  className='block px-4 py-2 w-full'
+                >
+                  {story.title || 'Untitled'}
+                </Link>
+              </TableCell>
               <TableCell className='border-none text-center'>
                 {getLanguageName(story.language)}
               </TableCell>
