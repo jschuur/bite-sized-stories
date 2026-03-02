@@ -4,7 +4,7 @@
 export default $config({
   app(input) {
     return {
-      name: 'ai-short-stories',
+      name: 'bite-sized-stories',
       removal: input?.stage === 'production' ? 'retain' : 'remove',
       protect: ['production'].includes(input?.stage),
       home: 'aws',
@@ -20,7 +20,7 @@ export default $config({
     });
 
     const environment = Object.fromEntries(
-      Object.entries(env).map(([key, value]) => [key, String(value)])
+      Object.entries(env).map(([key, value]) => [key, String(value)]),
     );
 
     console.log('hostname: ', env.SITE_HOSTNAME);

@@ -1,4 +1,4 @@
-# AI Short Stories
+# Bite Sized Stories
 
 Generate (very) short stories with AI to learn a new language.
 
