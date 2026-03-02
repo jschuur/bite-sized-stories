@@ -24,6 +24,8 @@ export const stories = sqliteTable('stories', {
   title: text('title'),
   story: text('story'),
   wordCount: integer('word_count'),
+  inputTokens: integer('input_tokens'),
+  outputTokens: integer('output_tokens'),
   prompt: text('prompt'),
   errorMessage: text('error_message'),
   createdAt: integer('created_at', { mode: 'timestamp' })

@@ -109,3 +109,27 @@ export type AudioProviderSettings = {
   model: string;
   prompt: string;
 };
+
+export type DashboardUser = {
+  id: string;
+  name: string;
+  email: string;
+  isAdmin: boolean;
+  canCreateStory: boolean;
+  canCreateAudio: boolean;
+  createdAt: string;
+};
+
+export type DashboardStats = {
+  cards: {
+    stories: number;
+    languages: number;
+    users: number;
+    totalTokens: number;
+  };
+  charts: {
+    storiesByDay: { date: string; stories: number }[];
+    tokensByDay: { date: string; inputTokens: number; outputTokens: number }[];
+  };
+  users: DashboardUser[];
+};
