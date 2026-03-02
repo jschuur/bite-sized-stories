@@ -1,5 +1,9 @@
+import { headers } from 'next/headers';
+
 import { updateStory } from '@/db/queries';
 import { generateStoryStreaming } from '@/lib/ai';
+import { auth } from '@/lib/auth';
+import { canCreateStory } from '@/lib/permissions';
 
 import { storyRequestSchema } from '@/types';
 
@@ -7,6 +11,16 @@ export async function POST(req: Request) {
   const storyId: string | null = null;
 
   try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user)
+      return new Response(JSON.stringify({ error: 'Authentication required' }), { status: 401 });
+
+    if (!canCreateStory(session.user))
+      return new Response(JSON.stringify({ error: 'Insufficient permissions' }), { status: 403 });
+
     const body = await req.json();
     const storyRequest = storyRequestSchema.safeParse(body);
 
@@ -16,7 +30,7 @@ export async function POST(req: Request) {
           error: 'Invalid request parameters',
           details: storyRequest.error.issues,
         }),
-        { status: 400 }
+        { status: 400 },
       );
 
     const result = await generateStoryStreaming(storyRequest.data);

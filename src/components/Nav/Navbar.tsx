@@ -5,8 +5,11 @@ import { usePathname } from 'next/navigation';
 
 import UserMenu from '@/components/Nav/UserMenu';
 
+import useUserPermissions from '@/hooks/useUserPermissions';
+
 export function Navbar() {
   const pathname = usePathname();
+  const { canCreateStory } = useUserPermissions();
 
   const linkClass = (href: string) => {
     const isActive =
@@ -31,9 +34,11 @@ export function Navbar() {
               <Link href='/stories' className={linkClass('/stories')}>
                 Stories
               </Link>
-              <Link href='/new' className={linkClass('/new')}>
-                New Story
-              </Link>
+              {canCreateStory && (
+                <Link href='/new' className={linkClass('/new')}>
+                  New Story
+                </Link>
+              )}
 
               <UserMenu />
             </div>
