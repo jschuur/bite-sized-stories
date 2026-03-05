@@ -1,8 +1,10 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-import { supportedLanguages } from '@/config';
+import { supportedLanguages as staticLanguages } from '@/config';
 import { env } from '@/env';
+
+import type { SupportedLanguage } from '@/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -43,11 +45,14 @@ export function extractStoryContent(text: string): { title: string | null; story
 type GetLanguageParams = {
   languageCode?: string;
   name?: string;
+  languages?: SupportedLanguage[];
 };
-export function getLanguage({ languageCode, name }: GetLanguageParams) {
-  if (languageCode) return supportedLanguages.find((lang) => lang.languageCode === languageCode);
+export function getLanguage({ languageCode, name, languages }: GetLanguageParams) {
+  const list = languages ?? staticLanguages;
 
-  if (name) return supportedLanguages.find((lang) => lang.name === name);
+  if (languageCode) return list.find((lang) => lang.languageCode === languageCode);
+
+  if (name) return list.find((lang) => lang.name === name);
 
   return undefined;
 }

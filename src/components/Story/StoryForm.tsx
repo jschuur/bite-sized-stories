@@ -16,7 +16,9 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
-import { difficultyLevels, getRandomTopic, supportedLanguages } from '@/config';
+import { useConfig } from '@/hooks/useConfig';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { difficultyLevels } from '@/config';
 import { env } from '@/env';
 
 interface StoryFormProps {
@@ -31,18 +33,40 @@ interface StoryFormProps {
   isLoading: boolean;
 }
 
+function getRandomTopicFromList(topics: string[], oldTopic?: string) {
+  if (topics.length === 0) return '';
+
+  let newTopic: string;
+
+  do {
+    newTopic = topics[Math.floor(Math.random() * topics.length)];
+  } while (oldTopic && newTopic === oldTopic && topics.length > 1);
+
+  return newTopic;
+}
+
 export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
-  const [targetLanguage, setTargetLanguage] = useState(env.NEXT_PUBLIC_DEFAULT_TARGET_LANGUAGE);
-  const [storyLength, setStoryLength] = useState(env.NEXT_PUBLIC_DEFAULT_STORY_LENGTH.toString());
-  const [difficultyLevel, setDifficultyLevel] = useState(env.NEXT_PUBLIC_DEFAULT_DIFFICULTY_LEVEL);
+  const { data: config } = useConfig();
+  const languages = config?.languages ?? [];
+  const topicIdeas = config?.topicIdeas?.map((t) => t.topic) ?? [];
+
+  const { targetLanguage, storyLength, difficultyLevel, setTargetLanguage, setStoryLength, setDifficultyLevel } =
+    useUserPreferences();
+  const [topicInitialized, setTopicInitialized] = useState(false);
   const [topic, setTopic] = useState<string>(() => {
     const defaultTopic = env.NEXT_PUBLIC_DEFAULT_TOPIC;
 
     if (defaultTopic && defaultTopic.trim() && defaultTopic !== 'undefined')
       return defaultTopic;
 
-    return getRandomTopic();
+    return '';
   });
+
+  // Set random topic once config loads
+  if (!topicInitialized && topicIdeas.length > 0 && !topic) {
+    setTopic(getRandomTopicFromList(topicIdeas));
+    setTopicInitialized(true);
+  }
   const vocabularyDisabled = env.NEXT_PUBLIC_DISABLE_VOCABULARY_CHECKBOX;
   const grammarDisabled = env.NEXT_PUBLIC_DISABLE_GRAMMAR_CHECKBOX;
 
@@ -112,7 +136,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
               <SelectValue placeholder='Select language' />
             </SelectTrigger>
             <SelectContent>
-              {supportedLanguages.map((language) => (
+              {languages.map((language) => (
                 <SelectItem key={language.languageCode} value={language.languageCode}>
                   {language.name}
                 </SelectItem>
@@ -162,7 +186,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
             variant='ghost'
             size='sm'
             className='h-6 w-6 p-0'
-            onClick={() => setTopic((currentTopic) => getRandomTopic(currentTopic))}
+            onClick={() => setTopic((currentTopic) => getRandomTopicFromList(topicIdeas, currentTopic))}
             disabled={isLoading}
           >
             <RefreshCw className='h-3 w-3' />

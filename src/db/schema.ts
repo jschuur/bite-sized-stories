@@ -64,6 +64,63 @@ export const audioSelectSchema = createSelectSchema(audios);
 export const audioInsertSchema = createInsertSchema(audios);
 export const audioUpdateSchema = createUpdateSchema(audios);
 
+// Settings tables
+
+export const languages = sqliteTable('languages', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => randomUUID()),
+  name: text('name').notNull(),
+  languageCode: text('language_code').notNull().unique(),
+  googleCloudTts: integer('google_cloud_tts', { mode: 'boolean' }).default(false).notNull(),
+  active: integer('active', { mode: 'boolean' }).default(true).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const languageSelectSchema = createSelectSchema(languages);
+export const languageInsertSchema = createInsertSchema(languages);
+
+export const topicIdeas = sqliteTable('topic_ideas', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => randomUUID()),
+  topic: text('topic').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const topicIdeaSelectSchema = createSelectSchema(topicIdeas);
+export const topicIdeaInsertSchema = createInsertSchema(topicIdeas);
+
+export const storyRequirementCategories = sqliteTable('story_requirement_categories', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => randomUUID()),
+  key: text('key').notNull().unique(),
+  label: text('label').notNull(),
+  count: integer('count').notNull().default(1),
+  template: text('template').notNull(),
+  options: text('options', { mode: 'json' }).$type<(string | number)[]>().notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const storyRequirementCategorySelectSchema = createSelectSchema(storyRequirementCategories);
+export const storyRequirementCategoryInsertSchema = createInsertSchema(storyRequirementCategories);
+
 export const storiesRelations = relations(stories, ({ many }) => ({
   audios: many(audios),
 }));

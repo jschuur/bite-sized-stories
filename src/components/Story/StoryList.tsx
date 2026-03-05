@@ -1,19 +1,8 @@
 'use client';
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import {
-  flexRender,
-  getCoreRowModel,
-  SortingState,
-  useReactTable,
-} from '@tanstack/react-table';
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  X,
-} from 'lucide-react';
+import { flexRender, getCoreRowModel, SortingState, useReactTable } from '@tanstack/react-table';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X } from 'lucide-react';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useMemo } from 'react';
 
@@ -38,7 +27,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { authClient } from '@/lib/authClient';
 import { difficultyLevels } from '@/config';
 
-import { getStoryListColumns } from '@/components/StoryListColumns';
+import { getStoryListColumns } from '@/components/Story/StoryListColumns';
 
 import type { Story } from '@/types';
 
@@ -75,7 +64,7 @@ const ALL_VALUE = '__all__';
 const storyListParams = {
   page: parseAsInteger.withDefault(1),
   pageSize: parseAsInteger.withDefault(DEFAULT_PAGE_SIZE),
-  sortBy: parseAsString.withDefault('updatedAt'),
+  sortBy: parseAsString.withDefault('createdAt'),
   sortOrder: parseAsString.withDefault('desc'),
   language: parseAsString.withDefault(ALL_VALUE),
   difficulty: parseAsString.withDefault(ALL_VALUE),
@@ -253,7 +242,8 @@ export function StoryList() {
               <SelectItem value={ALL_VALUE}>All Languages</SelectItem>
               {configLanguages.map((lang) => (
                 <SelectItem key={lang.languageCode} value={lang.languageCode}>
-                  {lang.name}{'active' in lang && !lang.active && ' (inactive)'}
+                  {lang.name}
+                  {'active' in lang && !lang.active && ' (inactive)'}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -344,7 +334,10 @@ export function StoryList() {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className='group hover:bg-muted/50 transition-colors border-none'>
+                <TableRow
+                  key={row.id}
+                  className='group hover:bg-muted/50 transition-colors border-none'
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className='border-none'>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

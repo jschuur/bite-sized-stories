@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import { StoryList } from '@/components/StoryList';
+import { StoryList } from '@/components/Story/StoryList';
 
 export default function StoriesPage() {
   return (

@@ -1,4 +1,13 @@
-import { BarChart3, LogIn, LogOut, Menu, Settings, ShieldUser, User } from 'lucide-react';
+import {
+  BarChart3,
+  ChartLine,
+  LogIn,
+  LogOut,
+  Menu,
+  Settings,
+  ShieldUser,
+  User,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -79,12 +88,20 @@ export default function UserMenu() {
           </DropdownMenuItem>
 
           {session?.user?.isAdmin && (
-            <DropdownMenuItem className='gap-2' asChild>
-              <Link href='/admin'>
-                <Settings className='h-4 w-4' />
-                Admin
-              </Link>
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuItem className='gap-2' asChild>
+                <Link href='/admin'>
+                  <ChartLine className='h-4 w-4' />
+                  Dashboard
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className='gap-2' asChild>
+                <Link href='/admin/settings'>
+                  <Settings className='h-4 w-4' />
+                  Settings
+                </Link>
+              </DropdownMenuItem>
+            </>
           )}
 
           {session?.user && (

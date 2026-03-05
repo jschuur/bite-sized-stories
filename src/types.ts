@@ -4,9 +4,7 @@ import { z } from 'zod';
 import {
   audioProviders,
   difficultyLevels,
-  getRandomTopic,
   storyRequirementsConfig,
-  supportedLanguageCodes,
 } from '@/config';
 import { audios, stories } from '@/db/schema';
 import { env } from '@/env';
@@ -35,9 +33,7 @@ export type StoryRequirementsConfig = Record<StoryRequirementType, StoryRequirem
 export type StoryRequirements = Record<StoryRequirementType, (string | number)[]>;
 
 export const storyRequestSchema = z.object({
-  targetLanguage: z.enum(supportedLanguageCodes as [string, ...string[]], {
-    message: 'Invalid target language',
-  }),
+  targetLanguage: z.string().min(1, { message: 'Target language is required' }),
   storyLength: z.coerce
     .number()
     .int()
@@ -52,7 +48,7 @@ export const storyRequestSchema = z.object({
   difficultyLevel: z.enum(Object.keys(difficultyLevels) as [string, ...string[]], {
     message: 'Invalid difficulty level',
   }),
-  topic: z.string().default(getRandomTopic()),
+  topic: z.string().default(''),
   includeVocabulary: z.coerce
     .boolean()
     .optional()

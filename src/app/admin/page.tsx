@@ -8,13 +8,15 @@ import ActivityChart from '@/components/Admin/ActivityChart';
 import StatCard from '@/components/Admin/StatCard';
 import UsersTable from '@/components/Admin/UsersTable';
 
-import { supportedLanguages } from '@/config';
+import { useConfig } from '@/hooks/useConfig';
 
 import { DashboardStats } from '@/types';
 
 export default function AdminPage() {
   const [days, setDays] = useQueryState('days', parseAsString.withDefault('30'));
   const [chartTab, setChartTab] = useQueryState('chart', parseAsString.withDefault('stories'));
+
+  const { data: config } = useConfig();
 
   const { data, isLoading } = useQuery<DashboardStats>({
     queryKey: ['admin-stats', days],
@@ -48,7 +50,7 @@ export default function AdminPage() {
             title='Languages'
             value={data?.cards.languages}
             icon={<Globe className='size-4 text-muted-foreground' />}
-            description={`Languages used of ${supportedLanguages.length} supported`}
+            description={`Languages used of ${config?.languages.length ?? '...'} supported`}
             isLoading={isLoading}
           />
           <StatCard

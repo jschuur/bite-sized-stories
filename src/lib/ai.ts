@@ -2,9 +2,9 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { streamText } from 'ai';
 
 import { createStory, updateStory } from '@/db/queries';
-import { countWords, debug, extractStoryContent, getLanguage } from '@/lib/utils';
+import { getLanguages, getStoryRequirementCategories } from '@/db/queries/settings';
+import { countWords, debug, extractStoryContent } from '@/lib/utils';
 
-import { storyRequirementsConfig } from '@/config';
 import { env } from '@/env';
 
 import type {
@@ -12,7 +12,6 @@ import type {
   StoryRequest,
   StoryRequirementOptions,
   StoryRequirements,
-  StoryRequirementType,
   StoryRequirementValue,
 } from '@/types';
 
@@ -61,7 +60,7 @@ export type BuiltPromptParams = {
   includeGrammarTips: boolean;
 };
 
-export function buildPrompt({
+export async function buildPrompt({
   targetLanguage,
   storyLength,
   difficultyLevel,
@@ -72,12 +71,24 @@ export function buildPrompt({
   const storyRequirements: StoryRequirements = {} as StoryRequirements;
   const storyRequirementsList: string[] = [];
 
-  const targetLanguageName = getLanguage({ languageCode: targetLanguage })?.name;
+  const [dbLanguages, dbRequirements] = await Promise.all([
+    getLanguages(),
+    getStoryRequirementCategories(),
+  ]);
 
-  for (const [key, config] of Object.entries(storyRequirementsConfig)) {
+  const targetLanguageName =
+    dbLanguages.find((l) => l.languageCode === targetLanguage)?.name ?? targetLanguage;
+
+  for (const category of dbRequirements) {
+    const config: StoryRequirementOptions = {
+      count: category.count,
+      options: category.options,
+      template: category.template,
+      label: category.label,
+    };
     const { requirement, formattedRequirement } = buildStoryRequirement(config);
 
-    storyRequirements[key as StoryRequirementType] = requirement;
+    storyRequirements[category.key as keyof StoryRequirements] = requirement;
     storyRequirementsList.push(formattedRequirement);
   }
 
@@ -114,7 +125,7 @@ export async function generateStoryStreaming(storyRequest: StoryRequest): Promis
   let story: Story | null = null;
   let storyId: string | null = null;
 
-  const { prompt, storyRequirements } = buildPrompt(storyRequest);
+  const { prompt, storyRequirements } = await buildPrompt(storyRequest);
 
   try {
     // Create story entry with status 'pending'

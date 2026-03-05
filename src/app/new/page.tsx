@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSetAtom } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 
-import { StoryForm } from '@/components/StoryForm';
+import { StoryForm } from '@/components/Story/StoryForm';
 import { StoryResponse } from '@/components/StoryResponse';
 
 import {

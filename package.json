@@ -24,6 +24,9 @@
     "db:push": "drizzle-kit push",
     "db:push:prod": "dotenv -e .env.production -- drizzle-kit push",
     "db:push:staging": "dotenv -e .env.staging -- drizzle-kit push",
+    "db:seed": "tsx scripts/seed-settings.ts",
+    "db:seed:prod": "dotenv -e .env.production -- tsx scripts/seed-settings.ts",
+    "db:seed:staging": "dotenv -e .env.staging -- tsx scripts/seed-settings.ts",
     "generate:audio": "tsx scripts/generateAudio.ts --",
     "generate:audio:prod": "dotenv -e .env.production -- tsx scripts/generateAudio.ts --",
     "generate:audio:staging": "dotenv -e .env.staging -- tsx scripts/generateAudio.ts --"
@@ -55,6 +58,7 @@
     "nuqs": "^2.8.9",
     "ora": "^9.3.0",
     "picocolors": "^1.1.1",
+    "pluralize": "^8.0.0",
     "pretty-bytes": "^7.1.0",
     "pretty-ms": "^9.3.0",
     "radix-ui": "^1.4.3",
@@ -65,12 +69,14 @@
     "recharts": "2.15.4",
     "tailwind-merge": "^3.5.0",
     "use-elapsed-time": "^3.0.4",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.1",
     "@types/minimist": "^1.2.5",
     "@types/node": "^24.11.0",
+    "@types/pluralize": "^0.0.33",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "dotenv": "^17.3.1",

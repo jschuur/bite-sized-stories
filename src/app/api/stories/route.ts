@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     if (paginated === 'true') {
       const page = parseInt(searchParams.get('page') || '1');
       const pageSize = parseInt(searchParams.get('pageSize') || '10');
-      const sortBy = searchParams.get('sortBy') || 'createdAt';
+      const sortBy = searchParams.get('sortBy') || 'updatedAt';
       const sortOrder = (searchParams.get('sortOrder') || 'desc') as 'asc' | 'desc';
       const language = searchParams.get('language') || undefined;
       const difficulty = searchParams.get('difficulty') || undefined;

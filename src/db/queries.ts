@@ -60,6 +60,7 @@ function getSortOrder(sortBy: string, sortOrder: 'asc' | 'desc'): SQL {
     case 'language': return dir(stories.language);
     case 'difficultyLevel': return dir(stories.difficultyLevel);
     case 'wordCount': return dir(stories.wordCount);
+    case 'updatedAt': return dir(stories.updatedAt);
     case 'createdAt':
     default:
       return dir(stories.createdAt);
@@ -76,7 +77,7 @@ export async function getStoriesPaginated(params: StoriesQueryParams = {}): Prom
   const {
     page = 1,
     pageSize = 10,
-    sortBy = 'createdAt',
+    sortBy = 'updatedAt',
     sortOrder = 'desc',
     language,
     difficulty,
