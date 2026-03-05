@@ -25,7 +25,7 @@ export function Navbar() {
   return (
     <>
       <nav className='bg-amber-200 dark:bg-indigo-900/80 backdrop-blur-sm border-b border-amber-300 text-black'>
-        <div className='mx-auto max-w-4xl px-4'>
+        <div className='mx-auto max-w-full px-4'>
           <div className='flex h-14 items-center justify-between'>
             <Link href='/' className='text-lg font-bold tracking-tight'>
               Bite Sized Stories

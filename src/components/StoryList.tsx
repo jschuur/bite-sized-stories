@@ -440,7 +440,7 @@ export function StoryList() {
 
   return (
     <div className='space-y-4'>
-      <div className='flex items-center justify-between'>
+      <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-2'>
         <h3 className='text-lg font-semibold'>
           Stories
           {data && (
@@ -448,7 +448,7 @@ export function StoryList() {
           )}
         </h3>
 
-        <div className='flex items-center gap-2'>
+        <div className='flex flex-wrap items-center justify-end gap-2'>
           <Button
             variant='ghost'
             size='icon-sm'
