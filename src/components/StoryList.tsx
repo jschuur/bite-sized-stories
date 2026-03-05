@@ -16,9 +16,11 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Info,
+  MoreHorizontal,
   X,
 } from 'lucide-react';
-import Link from 'next/link';
+import NextLink from 'next/link';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useMemo } from 'react';
 
@@ -31,6 +33,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card';
+import {
   Table,
   TableBody,
   TableCell,
@@ -41,9 +54,35 @@ import {
 
 import { formatDate, getLanguage } from '@/lib/utils';
 
-import { difficultyLevels, supportedLanguages } from '@/config';
+import { difficultyLevels, storyRequirementsConfig, supportedLanguages } from '@/config';
 
-import type { Story } from '@/types';
+import type { Story, StoryRequirementType, StoryRequirements } from '@/types';
+
+function formatStoryRequirements(requirements: StoryRequirements | null): React.ReactNode {
+  if (!requirements || typeof requirements !== 'object') return null;
+
+  const entries = Object.entries(requirements).filter(
+    ([, values]) => Array.isArray(values) && values.length > 0,
+  );
+
+  return (
+    <div className='grid grid-cols-2 gap-x-6 gap-y-2 text-sm'>
+      {entries.map(([key, values]) => {
+        const config = storyRequirementsConfig[key as StoryRequirementType];
+        const label =
+          config?.label ?? key.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase());
+        const valueStr = (values as (string | number)[]).map(String).join(', ');
+
+        return (
+          <div key={key} className='flex flex-col gap-0.5'>
+            <span className='text-xs text-muted-foreground'>{label}</span>
+            <span className='font-semibold'>{valueStr}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 type PaginatedResponse = {
   stories: Story[];
@@ -203,14 +242,46 @@ export function StoryList() {
         accessorKey: 'title',
         size: 0,
         header: ({ column }) => <SortableHeader column={column}>Title</SortableHeader>,
-        cell: ({ row }) => (
-          <Link
-            href={`/story/${row.original.id}`}
-            className='block w-full hover:underline truncate'
-          >
-            {row.original.title || 'Untitled'}
-          </Link>
-        ),
+        cell: ({ row }) => {
+          const story = row.original;
+
+          return (
+            <div className='flex items-center gap-1 min-w-0'>
+              <NextLink
+                href={`/story/${story.id}`}
+                className='flex-1 min-w-0 hover:underline truncate'
+              >
+                {story.title || 'Untitled'}
+              </NextLink>
+              <HoverCard openDelay={200} closeDelay={100}>
+                <HoverCardTrigger asChild>
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    type='button'
+                    className='size-6 shrink-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity'
+                  >
+                    <Info className='size-3.5' />
+                    <span className='sr-only'>Story details</span>
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent side='top' align='start' className='w-[32rem]'>
+                  <div className='space-y-3'>
+                    {story.topic && (
+                      <div className='flex flex-col gap-0.5'>
+                        <span className='text-xs text-muted-foreground'>Topic</span>
+                        <span className='font-semibold'>{story.topic}</span>
+                      </div>
+                    )}
+                    <div>
+                      {formatStoryRequirements(story.storyRequirements)}
+                    </div>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'language',
@@ -269,6 +340,47 @@ export function StoryList() {
         cell: ({ row }) => (
           <div className='text-right'>{formatDate(new Date(row.original.createdAt))}</div>
         ),
+      },
+      {
+        id: 'actions',
+        size: 48,
+        header: () => null,
+        cell: ({ row }) => {
+          const story = row.original;
+          const storyLink =
+            typeof window !== 'undefined'
+              ? `${window.location.origin}/story/${story.id}`
+              : `/story/${story.id}`;
+
+          return (
+            <div className='flex justify-end'>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant='ghost' size='icon-sm' className='h-8 w-8'>
+                    <MoreHorizontal className='size-4' />
+                    <span className='sr-only'>Open menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align='end'>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      navigator.clipboard.writeText(story.id);
+                    }}
+                  >
+                    Copy Story ID
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      navigator.clipboard.writeText(storyLink);
+                    }}
+                  >
+                    Copy Story Link
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          );
+        },
       },
     ],
     [],
@@ -454,7 +566,7 @@ export function StoryList() {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className='hover:bg-muted/50 transition-colors border-none'>
+                <TableRow key={row.id} className='group hover:bg-muted/50 transition-colors border-none'>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className='border-none'>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
